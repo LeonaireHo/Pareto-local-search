@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 def get_y(infos, x):
     return [sum([infos["value"][v][i] for i in x]) for v in range(len(infos["value"]))]
@@ -25,6 +26,7 @@ def read_file(filename,nb_objectif = 2):
 
     return infos
 
+#initialiser une solution
 def init_p(infos):
     p, W = [], 0
     index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], range(infos["n"])))
@@ -40,6 +42,7 @@ def init_p(infos):
 
     return [p]
 
+#fonction voisinage
 def voisinage( current, infos):
     objet_dehor = set(range(infos["n"])) - set(current) # The other pickable objects
     W = sum([infos["weight"][i] for i in current]) # The total weight of the current solution
@@ -77,6 +80,7 @@ def get_voisins( current_index, voisin):
 
     return ens_solu
 
+#fonction mise a jour
 def MSJ(infos, ens, x):
     if sum(infos["weight"][i] for i in x) > infos["W"]:
         return False
@@ -123,20 +127,69 @@ def PLS(file = "2KP100-TA-0.dat",nb_objectif = 2):
 
     return Xe
 
-def get_v_total(infos,nb_objectif,s):
-    aux = [0] * nb_objectif
-    v = get_y(infos, s)
-    for i in range(nb_objectif):
-        aux[i] += v[i]
-    return aux
+def compare(infos,solu1,solu2,w = None,model = None):
+    if get_v_total(infos,solu1,w,model) >= get_v_total(infos,solu2,w,model):
+        return solu1
+    return solu2
+
+def MMR(infos, solus):
+    if len(solus) == 1:
+        return None
+    if len(solus) == 1:
+        return solus[0]
+    ens_values = np.array([get_y(infos,x) for x in solus])
+    ens_max = [max(line) for line in ens_values.T]
+    mmr = [max(line) for line in (ens_max - ens_values)]
+    copy = mmr.copy()
+    min1 = mmr.index(min(copy))
+    copy.remove(min(copy))
+    min2 = mmr.index(min(copy))
+    # print(mmr)
+    return min1,min2
+
+def get_v_total(infos,solu,w = None,model = None):
+    if model is None:
+        v = get_y(infos, solu)
+        return sum(v)
+    elif model == 'ponderee':
+        v = get_y(infos, solu)
+        return np.sum(v * np.array(w))
+    elif model == 'OWA':
+        v = get_y(infos,solu)
+        v.sort()
+        return np.sum(v * np.array(w))
+
+def procedure1(infos,pareto_index,w,model):
+    old_res,res = MMR(infos, pareto_index)
+    old_solu = pareto_index.pop(old_res)
+    solu = pareto_index.pop(res)
+    res = compare(infos,old_solu,solu,w,model)
+    while res != old_res and len(pareto_index) > 0:
+        old_res = res
+        res,_ = MMR(infos,pareto_index)
+        solu = pareto_index.pop(res)
+        res = compare(infos,old_solu,solu,w,model)
+    return res
+
+
 
 if __name__ == "__main__":
     nb_objectif = 2
-    file = "2KP30-TA-0.dat"
+    file = "2KP50-TA-0.dat"
     pareto_index = PLS(file,nb_objectif = nb_objectif)
     print(len(pareto_index)," solutions")
-
+    w = (0.2,0.8)
+    # w = [0.2,0.1,0.2,0.3,0.15,0.05]
     infos = read_file(file,nb_objectif)
     for s in pareto_index:
-        print(s)
-        print(get_v_total(infos,nb_objectif,s))
+        # print(s)
+        # print(get_v_total(infos,s,w = (0.2,0.8),model = 'ponderee'))
+        # print(get_v_total(infos,s,w = (0.2,0.8),model = 'OWA'))
+        pass
+    print("Solu_Initi:",get_v_total(infos,init_p(infos)[0],w = w,model = 'ponderee'))
+    res = procedure1(infos,pareto_index,w = w,model = 'ponderee')
+    print("Procedure1:",get_v_total(infos,res,w = w,model = 'ponderee'))
+
+
+    pareto_index = PLS_EI(w,'ponderee',file,nb_objectif = nb_objectif)
+    print("Procedure2:",get_v_total(infos,pareto_index,w = w,model = 'ponderee'))
