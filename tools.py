@@ -1,4 +1,20 @@
 import numpy as np
+import random
+#initialiser une solution
+def init_p(infos):
+    p, W = [], 0
+    index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], range(infos["n"])))
+
+    while W <= infos['W'] and len(index_objects) > 0:
+        new_index_obj = random.choice(index_objects)
+        index_objects.remove(new_index_obj)
+
+        p.append(new_index_obj)
+        W += infos["weight"][new_index_obj]
+
+        index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], index_objects))
+
+    return [p]
 
 def get_y(infos, x):
     return [sum([infos["value"][v][i] for i in x]) for v in range(len(infos["value"]))]

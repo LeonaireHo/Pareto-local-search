@@ -1,21 +1,4 @@
-import random
 from tools import *
-
-#initialiser une solution
-def init_p(infos):
-    p, W = [], 0
-    index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], range(infos["n"])))
-
-    while W <= infos['W'] and len(index_objects) > 0:
-        new_index_obj = random.choice(index_objects)
-        index_objects.remove(new_index_obj)
-
-        p.append(new_index_obj)
-        W += infos["weight"][new_index_obj]
-
-        index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], index_objects))
-
-    return [p]
 
 #fonction voisinage
 def voisinage( current, infos):
@@ -45,7 +28,7 @@ def voisinage( current, infos):
                 new_W += infos["weight"][new_index_other]
 
                 copy_objet_liber = set(filter(lambda i: infos["weight"][i] <= infos['W'] - new_W, copy_objet_liber))
-    print('Trouver voisins:',len(voisins))
+    # print('Trouver voisins:',len(voisins))
     return voisins
 
 def get_voisins( current_index, voisin):
