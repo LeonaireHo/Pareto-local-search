@@ -49,26 +49,6 @@ def read_file(filename,nb_objectif = 2,nb_objet = 100):
     infos["W"] = sum(infos["weight"]) // nb_objectif
     return infos
 
-def choisir_par_decideur(infos,solu1,solu2,w = None,model = None):
-    if get_v_total(infos,solu1,w,model) >= get_v_total(infos,solu2,w,model):
-        return solu1
-    return solu2
-
-def MMR(infos, solus):
-    if len(solus) == 0:
-        return None,None
-    if len(solus) == 1:
-        return 0,None
-    ens_values = np.array([get_y(infos,x) for x in solus])
-    ens_max = [max(line) for line in ens_values.T]
-    mmr = [max(line) for line in (ens_max - ens_values)]
-    copy = mmr.copy()
-    min1 = mmr.index(min(copy))
-    copy.remove(min(copy))
-    min2 = mmr.index(min(copy))
-    # print(mmr)
-    return min1,min2
-
 def get_owa(v,w):
     v.sort()
     return np.sum(v * np.array(w))
@@ -85,6 +65,7 @@ def get_v_total(infos,solu,w = None,model = None):
         return get_owa(v,w)
 
 def PMROWA(x, y, prefs):
+    # print("x",x,y)
     n = len(x)
     x.sort()
     y.sort()
@@ -122,29 +103,26 @@ def PMROWA(x, y, prefs):
     # print(obj)
     return obj.getValue()
 
-def MR(x, front, prefs,model):
-    nb_solution = len(front)
+def MR(x, values, prefs,model):
+    nb_solution = values.shape[0]
     max_value = float('-inf')
     max_index = -1
     for y_index in range(nb_solution):
-
-        if y_index == x:
-            continue
-        value = model(np.array(front[x]), np.array(front[y_index]), prefs)
-
-        if value > max_value:
-            max_value = value
-            max_index = y_index
+        if y_index != x:
+            value = model(values[x], values[y_index], prefs)
+            if value > max_value:
+                max_value = value
+                max_index = y_index
     return max_index, max_value
 
-def MMR2(front, prefs,model):
-    nb_solution = len(front)
+def MMR(values, prefs, model):
+    nb_solution = values.shape[0]
     min_value = float('inf')
     min_x_index = -1
     min_y_index = -1
 
     for x_index in range(nb_solution):
-        y_index, y_value = MR(x_index, front, prefs,model)
+        y_index, y_value = MR(x_index, values, prefs,model)
         if y_value < min_value:
             min_value = y_value
             min_x_index = x_index

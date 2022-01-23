@@ -28,21 +28,23 @@ if __name__ == "__main__":
     # # pareto_index = PLS_EI(w,'ponderee',file,nb_objectif = nb_objectif)
     # # print("Procedure2:",get_v_total(infos,pareto_index,w = w,model = 'ponderee'))
 
-    nb_objectif = 3
+    nb_objectif = 4
     file = "2KP50-TA-0.dat"
-    w = (0.2, 0.3,0.5)
+    w = (0.2, 0.3,0.3,0.2)
     nb_objet = 20
     # w = [0.2,0.1,0.2,0.3,0.15,0.05]
     infos = read_file(file, nb_objectif,nb_objet)
     print("Solu_random:", get_v_total(infos, init_p(infos)[0], w=w, model='ponderee'))
     pareto_index = PLS(file, nb_objectif=nb_objectif, nb_objet=nb_objet)
     print(len(pareto_index), " solutions")
+    values = []
     for s in pareto_index:
         # print(s)
         # print(get_v_total(infos,s,w = (0.2,0.8),model = 'ponderee'))
         # print(get_v_total(infos,s,w = (0.2,0.8),model = 'OWA'))
+        values.append(get_y(infos,s))
         pass
-    res,nb_q = Procedure_ES(infos, pareto_index, w,PMROWA)
+    res,nb_q = Procedure_ES(np.array(values), w,PMROWA)
     print(res,nb_q)
     # pareto_index,hist = procedure1(infos, pareto_index, w, 'ponderee')
     # for i in hist:
