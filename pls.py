@@ -28,14 +28,13 @@ def voisinage( current, infos):
                 new_W += infos["weight"][new_index_other]
 
                 copy_objet_liber = set(filter(lambda i: infos["weight"][i] <= infos['W'] - new_W, copy_objet_liber))
-    # print('Trouver voisins:',len(voisins))
+    print('Trouver voisins:',len(voisins))
     return voisins
 
 def get_voisins( current_index, voisin):
     ens_solu = current_index[:] + voisin[1]
     for v in voisin[0]:
         ens_solu.remove(v)
-
     return ens_solu
 
 #fonction mise a jour
@@ -56,8 +55,8 @@ def MSJ(infos, ens, x):
     ens.append(x)
     return True
 
-def PLS(file = "2KP100-TA-0.dat",nb_objectif = 2):
-    infos = read_file(file.format(0),nb_objectif)
+def PLS(file = "2KP100-TA-0.dat",nb_objectif = 2,nb_objet = 100):
+    infos = read_file(file.format(0),nb_objectif = nb_objectif,nb_objet=nb_objet )
     Xe = init_p(infos)
     ens_p = Xe[:]
 
