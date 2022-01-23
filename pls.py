@@ -1,12 +1,10 @@
 from tools import *
-
+import time
 #fonction voisinage
 def voisinage( current, infos):
     objet_dehor = set(range(infos["n"])) - set(current) # The other pickable objects
     W = sum([infos["weight"][i] for i in current]) # The total weight of the current solution
-
     voisins = []
-
     for obj_index in current:
         objet_liber = set(filter(lambda i: infos["weight"][i] <= infos["W"] - W + infos["weight"][obj_index], objet_dehor))
         for obj in objet_liber:
@@ -28,7 +26,8 @@ def voisinage( current, infos):
                 new_W += infos["weight"][new_index_other]
 
                 copy_objet_liber = set(filter(lambda i: infos["weight"][i] <= infos['W'] - new_W, copy_objet_liber))
-    print('Trouver voisins:',len(voisins))
+    # print('Trouver voisins:',len(voisins))
+    # print('*',end='')
     return voisins
 
 def get_voisins( current_index, voisin):
@@ -55,7 +54,7 @@ def MSJ(infos, ens, x):
     ens.append(x)
     return True
 
-def PLS(file = "2KP100-TA-0.dat",nb_objectif = 2,nb_objet = 100):
+def PLS(file = "2KP200-TA-0.dat",nb_objectif = 2,nb_objet = 100):
     infos = read_file(file.format(0),nb_objectif = nb_objectif,nb_objet=nb_objet )
     Xe = init_p(infos)
     ens_p = Xe[:]
@@ -81,6 +80,6 @@ def PLS(file = "2KP100-TA-0.dat",nb_objectif = 2,nb_objet = 100):
 
         ens_p = [p for p in ens_aux if set(p) not in ens_deja]
         ens_aux = []
-
+    print('')
     return Xe
 

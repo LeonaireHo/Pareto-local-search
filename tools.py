@@ -6,17 +6,14 @@ from gurobipy import GRB
 def init_p(infos):
     p, W = [], 0
     index_objects = list(range(infos["n"]))
-    # print('n',infos["n"])
-    # print(index_objects)
-    while W <= infos['W'] and len(index_objects) > 0:
+    while len(index_objects) > 0:
         new_index_obj = random.choice(index_objects)
         index_objects.remove(new_index_obj)
-
-        p.append(new_index_obj)
-        # print(infos["weight"],new_index_obj)
         W += infos["weight"][new_index_obj]
-        index_objects = list(filter(lambda i: infos["weight"][i] <= infos['W'], index_objects))
-
+        if W <= infos['W']:
+            p.append(new_index_obj)
+        else:
+            W += -infos["weight"][new_index_obj]
     return [p]
 
 #get values d’agrégation
@@ -63,42 +60,42 @@ def get_v_total(infos,solu,w = None,model = None):
     elif model == 'OWA':
         v = get_y(infos,solu)
         return get_owa(v,w)
+    elif model == 'poids':
+        poids = infos["weight"]
+        return sum(poids[i] for i in solu)
 
-def PMROWA(x, y, prefs):
+def PMR(x, y, prefs, f_type):
     # print("x",x,y)
     n = len(x)
-    x.sort()
-    y.sort()
 
-    #creation du model
     model = gp.Model("MMR")
     model.Params.LogToConsole = 0
-    #creation des variables w
-    w = [model.addVar(vtype=GRB.CONTINUOUS, name="w"+str(i+1)) for i in range(n)]
-
+    #creation des variables X
+    X = [model.addVar(vtype=GRB.CONTINUOUS, name="X"+str(i+1)) for i in range(n)]
     model.update()
-
-    #contrainte 1
+    #contraint non null
     for i in range(n):
-        model.addConstr(w[i]>=0)
-    #contrainte 2
-    for i in range(n-1):
-        model.addConstr(w[i] >= w[i+1])
-    #contrainte 3
-    model.addConstr(np.sum(w) == 1)
-    #contrainte 4
-    for a,b in prefs:
-        #OWA
-        sa = np.sort(a)
-        sb = np.sort(b)
-        model.addConstr(np.sum([np.sum(w[i]) * sa[i] for i in range(n)]) >= np.sum([np.sum(w[i]) * sb[i] for i in range(n)]))
-    #Définition de l'objectif
+        model.addConstr(X[i] >= 0)
+
+    if f_type == "OWA":
+        x.sort()
+        y.sort()
+        for i in range(n - 1):
+            model.addConstr(X[i] >= X[i + 1])
+
+        model.addConstr(np.sum(X) == 1)
+
+        for a,b in prefs:
+            sa = np.sort(a)
+            sb = np.sort(b)
+            model.addConstr(np.sum([np.sum(X[i]) * sa[i] for i in range(n)]) >= np.sum([np.sum(X[i]) * sb[i] for i in range(n)]))
+    elif f_type == "ponderee":
+        model.addConstr(np.sum(X) == 1)
+    #l'objectif
     obj = gp.LinExpr()
-    obj += np.sum([ w[i] * y[i] for i in range(n)]) - np.sum( [w[i] * x[i] for i in range(n)])
+    obj += np.sum([ X[i] * y[i] for i in range(n)]) - np.sum( [X[i] * x[i] for i in range(n)])
 
     model.setObjective(obj,GRB.MAXIMIZE)
-
-    #Run l'optimiseur
     model.optimize()
     # print(obj)
     return obj.getValue()
@@ -109,7 +106,7 @@ def MR(x, values, prefs,model):
     max_index = -1
     for y_index in range(nb_solution):
         if y_index != x:
-            value = model(values[x], values[y_index], prefs)
+            value = PMR(values[x], values[y_index], prefs, model)
             if value > max_value:
                 max_value = value
                 max_index = y_index
