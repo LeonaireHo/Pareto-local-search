@@ -54,7 +54,7 @@ def MSJ(infos, ens, x):
     ens.append(x)
     return True
 
-def PLS(file = "2KP200-TA-0.dat",nb_objectif = 2,nb_objet = 100):
+def PLS(file,nb_objectif,nb_objet):
     infos = read_file(file.format(0),nb_objectif = nb_objectif,nb_objet=nb_objet )
     Xe = init_p(infos)
     ens_p = Xe[:]
@@ -71,7 +71,7 @@ def PLS(file = "2KP200-TA-0.dat",nb_objectif = 2,nb_objet = 100):
                 new_p = get_voisins(p, voisin)
 
                 new_y = get_y(infos, new_p)
-                if not dominer(new_y, current_y):
+                if not dominer(new_y,current_y):
                     if MSJ(infos, Xe, new_p):
                         MSJ( infos, ens_aux, new_p)
             p_solu = set(p)

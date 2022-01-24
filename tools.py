@@ -22,7 +22,7 @@ def get_y(infos, x):
 
 #si x domine y
 def dominer(score_x, score_y):
-    return all([score_x[k] <= score_y[k] for k in range(len(score_x))])
+    return all([score_x[k] >= score_y[k] for k in range(len(score_x))])
 
 def read_file(filename,nb_objectif = 2,nb_objet = 100):
     with open(filename, 'r') as f:
