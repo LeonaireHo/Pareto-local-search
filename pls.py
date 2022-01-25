@@ -40,13 +40,14 @@ def get_voisins( current_index, voisin):
 def MSJ(infos, ens, x):
     if sum(infos["weight"][i] for i in x) > infos["W"]:
         return False
+    score_x = get_y(infos, x)
+    liste_remove = []
 
-    score_x, liste_remove = get_y(infos, x), []
     for y in ens:
         score_y = get_y(infos, y)
-        if dominer(score_y, score_x):
+        if dominer(score_x,score_y):
             liste_remove.append(y)
-        elif dominer(score_x, score_y):
+        elif dominer(score_y, score_x):
             return False
 
     for y in liste_remove:
@@ -58,20 +59,16 @@ def PLS(file,nb_objectif,nb_objet):
     infos = read_file(file.format(0),nb_objectif = nb_objectif,nb_objet=nb_objet )
     Xe = init_p(infos)
     ens_p = Xe[:]
-
     ens_aux = []
     ens_deja = [ens_p]
-
     while len(ens_p) != 0:
         for p in ens_p:
             current_y = get_y(infos, p)
-
             voisins = voisinage(p, infos)
             for voisin in voisins:
                 new_p = get_voisins(p, voisin)
-
                 new_y = get_y(infos, new_p)
-                if not dominer(new_y,current_y):
+                if not dominer(current_y,new_y):
                     if MSJ(infos, Xe, new_p):
                         MSJ( infos, ens_aux, new_p)
             p_solu = set(p)
@@ -80,6 +77,6 @@ def PLS(file,nb_objectif,nb_objet):
 
         ens_p = [p for p in ens_aux if set(p) not in ens_deja]
         ens_aux = []
-    print('')
+    # print('')
     return Xe
 

@@ -48,6 +48,8 @@ def read_file(filename,nb_objectif = 2,nb_objet = 100):
 
 def get_owa(v,w):
     v.sort()
+    reversed(v)
+    # print("v",v)
     return np.sum(v * np.array(w))
 
 def get_v_total(infos,solu,w = None,model = None):
